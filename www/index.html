@@ -50,6 +50,46 @@ letter-spacing: -1px;
   $('.iumail').html('<a href="mailto:'+mail+'@indiana.edu">'+mail+'@indiana.edu</a>')</script>
   </div>
   </div>
+
+  <div class="row">
+  <div class="span12">
+    <table class="table table-hover table-condensed" id="duplicates">
+      <tbody>
+        <tr>
+         <td>1</td>
+         <td><ul class="unstyled">
+           <li>Catalogue.</li>
+           <li>Catalogue</li>
+           <li>Catalogue,</li>
+         </ul></td>
+         <td>0.034</td>
+        </tr>
+        <tr>
+         <td>1</td>
+         <td><ul class="unstyled">
+           <li>Childhood development.</li>
+           <li>Childhood development: a psychological study</li>
+         </ul></td>
+         <td>0.112</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  </div>
 </div>
+<script>
+$('#duplicates tr').click(function() {
+  console.log("clicked");
+  if ($(this).hasClass('success'))
+    $(this).removeClass('success');
+  else if ($(this).hasClass('error')) {
+    $(this).removeClass('error');
+    $(this).addClass('success');
+  } else {
+    $(this).addClass('error');
+  }
+
+  });
+</script>
 </body>
 </html>
