@@ -92,23 +92,39 @@ letter-spacing: -1px;
         </tr>
       </tbody>
     </table>
-    <button class="btn btn-primary">Select Volumes</button>
+    <button class="btn btn-primary" onClick="gatherVolumes()">Select Volumes</button>
   </div>
   </div>
 </div>
 <script>
 $('#duplicates tr').click(function() {
-  console.log("clicked");
-  if ($(this).hasClass('success'))
+  if ($(this).hasClass('success')) {
     $(this).removeClass('success');
-  else if ($(this).hasClass('error')) {
+  } else if ($(this).hasClass('error')) {
     $(this).removeClass('error');
     $(this).addClass('success');
   } else {
     $(this).addClass('error');
   }
+});
 
-  });
+function gatherVolumes() {
+  var volumes = [];
+  $('#duplicates tr').each(function(i,elt) {
+    if ($(this).hasClass('success')) {
+      $("li", this).each(function(i,elt) {
+          volumes.push($(this).data('htrcid'));
+        });
+    } else if ($(this).hasClass('error')) {
+    } else {
+      $("li:first-child", this).each(function(i,elt) {
+          volumes.push($(this).data('htrcid'));
+        });
+    }
+    });
+  console.log(volumes);
+  return volumes;
+  }
 </script>
 </body>
 </html>
