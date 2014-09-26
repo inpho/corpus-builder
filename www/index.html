@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>InPhO Corpus Builder</title>
+<script src="lib/jquery-1.11.0.min.js"></script>
+<script src="lib/jquery.superdom.min.js"></script>
+<script src="lib/bootstrap-2.3.2/js/bootstrap.min.js"></script>
+<script src="lib/d3.v3.min.js"></script>
+<script src="lib/mustache.js"></script>
+<script src="lib/inpho/util.js"></script>
+<!--<script src="sep.js"></script>-->
+<link rel="stylesheet" type="text/css" href="lib/bootstrap-2.3.2/css/bootstrap.min.css" />
+<style>
+.logo-word {
+  background-image: url('http://inphodata.cogs.indiana.edu/img/inpho_logo.png');
+  background-size: 172px 92px;
+  width: 172px;
+  height: 84px;
+  padding-top: 6px;
+  margin-top: 14px;
+  margin-bottom: 5px;
+  margin-left: -6px;
+  display: inline-block;
+  text-indent: -3000px;
+}
+h1 {
+text-align: center;
+margin-bottom: 0;
+font-size: 59px;
+line-height: 1;
+color: inherit;
+letter-spacing: -1px;
+
+}
+
+.btn {
+  vertical-align: middle;
+  margin-top: 2px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+  <div class="row">
+  <div class="span12">
+  <h1><a href="https://inpho.cogs.indiana.edu"><span class="logo-word">InPhO</span></a> Corpus Builder</h1>
+  <p><a href="http://github.com/inpho/corpus-builder/" target="_blank">Source code</a> and <a href="http://github.com/inpho/corpus-builder/issues/" target="_blank">issue tracking</a> for this page available at <a href="http://github.com/inpho/topic-explorer/" target="_blank">GitHub</a>. Contact Jaimie Murdock (<span class="iumail">jammurdo</span>) with further comments.</p>
+  <script>var mail = $('.iumail').text();
+  $('.iumail').html('<a href="mailto:'+mail+'@indiana.edu">'+mail+'@indiana.edu</a>')</script>
+  </div>
+  </div>
+</div>
+</body>
+</html>
