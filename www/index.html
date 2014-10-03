@@ -102,8 +102,9 @@ function gatherVolumes() {
 }
 
 $.get("row.mustache.html", function(template) {
-  $.getJSON('beagle.json', function(data) {
+  $.getJSON('readings.json', function(data) {
     $('#stats').append('<li>'+data.length+' records</li>');
+    $('#stats').append('<li>'+data.filter(function(item) { return item.htrc_id == null }).length+' missing</li>');
 
     for (i = 0; i < data.length; i++) {
       data[i]['htrc_props'] = []
