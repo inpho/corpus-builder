@@ -33,9 +33,7 @@ if __name__ == '__main__':
     from argparse import ArgumentParser
     parser = ArgumentParser()
     parser.add_argument('-p', '--port', type=int, default=9020)
-    # parser.add_argument('k', type=int)
     args = parser.parse_args()
-    # load_model(args.k)
 
-    run(host='localhost', port=args.port)
+    run(host='', port=args.port)
 

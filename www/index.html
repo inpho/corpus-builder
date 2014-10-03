@@ -3,7 +3,7 @@
 <head>
 <title>InPhO Corpus Builder</title>
 <script src="lib/jquery-1.11.0.min.js"></script>
-<script src="lib/jquery.superdom.min.js"></script>
+<!--<script src="lib/jquery.superdom.min.js"></script>-->
 <script src="lib/bootstrap-2.3.2/js/bootstrap.min.js"></script>
 <script src="lib/d3.v3.min.js"></script>
 <script src="lib/mustache.js"></script>
@@ -35,7 +35,7 @@ letter-spacing: -1px;
 
 .btn {
   vertical-align: middle;
-  margin-top: 2px;
+  margin-top: 0;
 }
 
 #duplicates li:first-child {
@@ -53,6 +53,15 @@ letter-spacing: -1px;
 .quant {
   font-style: bold;
   }
+.propList {
+  display: none;  
+}
+.error .propList {
+  display: inline;
+}
+.htrcIdCol {
+  width: 250px;
+}
 </style>
 </head>
 
@@ -60,9 +69,9 @@ letter-spacing: -1px;
 <div class="container">
   <div class="row">
   <div class="span12">
-  <h1><a href="https://inpho.cogs.indiana.edu"><span class="logo-word">InPhO</span></a> Corpus Builder</h1>
-  <h2>HTRC 1315 Anthropomorphism Corpus</h2>
-  <p>Based on your search for <span class="terms">"anthropomorphism" "comparative psychology" "darwin"</span>, we have found the following <span class="quant">1315 volumes</span>. Using the VSM topic model for the corpus, we have determined that the following entries may be duplicates. Improve your corpus by toggling each row to either remove all in that row, select all in that row, or reduce only to the first of the duplicate set.</p>
+  <h1>Corpus Builder</h1>
+  <h2>Darwin's Beagle Corpus</h2>
+  <p>This page contains the corresponding HTRC entries for the beagle voyage</p> 
   <p><a href="http://github.com/inpho/corpus-builder/" target="_blank">Source code</a> and <a href="http://github.com/inpho/corpus-builder/issues/" target="_blank">issue tracking</a> for this page available at <a href="http://github.com/inpho/topic-explorer/" target="_blank">GitHub</a>. Contact Jaimie Murdock (<span class="iumail">jammurdo</span>) with further comments.</p>
   <script>var mail = $('.iumail').text();
   $('.iumail').html('<a href="mailto:'+mail+'@indiana.edu">'+mail+'@indiana.edu</a>')</script>
@@ -71,25 +80,9 @@ letter-spacing: -1px;
 
   <div class="row">
   <div class="span12">
-    <table class="table table-hover table-condensed" id="duplicates">
+    <ul class="inline" id="stats"></ul>
+    <table class="table table-hover table-condensed" id="corpus">
       <tbody>
-        <tr>
-         <td>1</td>
-         <td><ul class="unstyled">
-           <li data-htrcid="a1">Catalogue.</li>
-           <li data-htrcid="a2">Catalogue</li>
-           <li data-htrcid="a3">Catalogue,</li>
-         </ul></td>
-         <td>0.034</td>
-        </tr>
-        <tr>
-         <td>2</td>
-         <td><ul class="unstyled">
-           <li data-htrcid="b1">Childhood development.</li>
-           <li data-htrcid="b2">Childhood development: a psychological study</li>
-         </ul></td>
-         <td>0.112</td>
-        </tr>
       </tbody>
     </table>
     <button class="btn btn-primary" onClick="gatherVolumes()">Select Volumes</button>
@@ -97,34 +90,54 @@ letter-spacing: -1px;
   </div>
 </div>
 <script>
-$('#duplicates tr').click(function() {
-  if ($(this).hasClass('success')) {
-    $(this).removeClass('success');
-  } else if ($(this).hasClass('error')) {
-    $(this).removeClass('error');
-    $(this).addClass('success');
-  } else {
-    $(this).addClass('error');
-  }
-});
 
 function gatherVolumes() {
   var volumes = [];
-  $('#duplicates tr').each(function(i,elt) {
-    if ($(this).hasClass('success')) {
-      $("li", this).each(function(i,elt) {
-          volumes.push($(this).data('htrcid'));
-        });
-    } else if ($(this).hasClass('error')) {
-    } else {
-      $("li:first-child", this).each(function(i,elt) {
-          volumes.push($(this).data('htrcid'));
-        });
-    }
+  $('#corpus tr').each(function(i,elt) {
+    if ($(this).hasClass('success'))
+      volumes.push($(this).data('htrcid'));
     });
   console.log(volumes);
   return volumes;
-  }
+}
+
+$.get("row.mustache.html", function(template) {
+  $.getJSON('beagle.json', function(data) {
+    $('#stats').append('<li>'+data.length+' records</li>');
+
+    for (i = 0; i < data.length; i++) {
+      data[i]['htrc_props'] = []
+
+      for (var prop in data[i]['htrc_md']){
+        if (data[i]['htrc_md'].hasOwnProperty(prop)){
+          data[i]['htrc_props'].push({
+            'key' : prop,
+            'value' : data[i]['htrc_md'][prop]
+           });
+        }
+      }
+
+      var html = Mustache.to_html(template, data[i]);
+      $('tbody').append(html);
+    }
+
+    $('#corpus tr').click(function() {
+      console.log("CLICK");
+      if ($(this).hasClass('success')) {
+        $(this).removeClass('success');
+      } else if ($(this).hasClass('error')) {
+        $(this).removeClass('error');
+        $(this).addClass('success');
+      } else {
+        $(this).addClass('error');
+      }
+    });
+
+    $('.htrcLink').tooltip({text: 'View  Volume at HTRC', placement: 'bottom'});
+  });
+
+});
+
 </script>
 </body>
 </html>
