@@ -2,7 +2,7 @@
 <tr data-htrcid="{{htrc_id}}" class="success">
 {{/confirmed}}
 {{^confirmed}}
-<tr>
+<tr {{^htrc_id}}class="error"{{/htrc_id}}>
 {{/confirmed}}
   <td class="htrcIdCol">
       <div class="input-append">
@@ -24,6 +24,6 @@
     {{/citation_props}}
     </dl>
   </td>
-  <td><input id="reading_date" type="text" class="input-small" placeholder="Reading Date"></input></td>
-  <td><input id="language" type="text" class="input-small" placeholder="Language"></input></td>
+  <td><input id="reading_date" type="text" class="input-small" placeholder="Reading Date" value="{{reading_date}}"></input></td>
+  <td><input id="language" type="text" class="input-small" placeholder="Language" value="{{language}}"></input></td>
 </tr>

@@ -32,9 +32,10 @@ def write(filename):
         originaldata = json.load(jsonfile)
 
     data = [datum for datum in originaldata 
-        if datum['original'] != request.POST['original']]
+        if datum['original'] != request.POST['original'].decode('utf8')]
 
     with open('www/' + filename, 'wb') as jsonfile:
+        request.POST['confirmed'] = True
         data.append(dict(request.POST.items()))
         print data[-1]
         data = json.dumps(data)
@@ -48,9 +49,12 @@ def clear(filename):
         originaldata = json.load(jsonfile)
 
     data = [datum for datum in originaldata 
-        if datum['original'] != request.POST['original']]
+        if datum['original'] != 
+            request.POST['original'].decode('utf-8')]
+    print len(data), len(originaldata)
 
     with open('www/' + filename, 'wb') as jsonfile:
+        request.POST['confirmed'] = False
         data.append(dict(request.POST.items()))
         print data[-1]
         data = json.dumps(data)

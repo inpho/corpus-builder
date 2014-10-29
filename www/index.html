@@ -74,12 +74,18 @@ letter-spacing: -1px;
   <div class="row">
   <div class="span12">
   <h1>Corpus Builder</h1>
-  <h2>Darwin's Beagle Corpus</h2>
+  <h2>Darwin's <span id="corpus">Beagle</span> Corpus</h2>
   <p>This page contains the corresponding HTRC entries for the beagle voyage</p> 
   <p><a href="http://github.com/inpho/corpus-builder/" target="_blank">Source code</a> and <a href="http://github.com/inpho/corpus-builder/issues/" target="_blank">issue tracking</a> for this page available at <a href="http://github.com/inpho/topic-explorer/" target="_blank">GitHub</a>. Contact Jaimie Murdock (<span class="iumail">jammurdo</span>) with further comments.</p>
   <script>var mail = $('.iumail').text();
   $('.iumail').html('<a href="mailto:'+mail+'@indiana.edu">'+mail+'@indiana.edu</a>')</script>
   </div>
+  </div>
+  
+  <div class="non-null" id="status" style="width:100%">
+    <div class="progress loading progress-striped active">
+      <div class="bar" style="width:33%">Loading template...</div>
+    </div>
   </div>
 
   <div class="row">
@@ -95,7 +101,9 @@ letter-spacing: -1px;
 </div>
 <script>
 
-var corpus = 'beagle.json';
+var corpus = inpho.util.getValueForURLParam('corpus') || 'beagle.json';
+
+$('#status .bar').css('width', '66%').text("Loading " + corpus + "...");
 
 function gatherVolumes() {
   var volumes = [];
@@ -111,6 +119,7 @@ $.get("row.mustache.html", function(template) {
   $.getJSON(corpus, function(data) {
     $('#stats').append('<li>'+data.length+' records</li>');
     $('#stats').append('<li>'+data.filter(function(item) { return item.htrc_id == null }).length+' missing</li>');
+    $('#stats').append('<li>'+data.filter(function(item) { return item.confirmed }).length+' confirmed</li>');
 
     for (i = 0; i < data.length; i++) {
       data[i]['htrc_props'] = []
@@ -153,12 +162,19 @@ $.get("row.mustache.html", function(template) {
         // switch to error
         $(this).addClass('error');
         $(this).attr('data-htrcid', '');
-        //clearRow(this);
+        clearRow(this);
       }
     });
 
     $('.htrcLink').tooltip({text: 'View  Volume at HTRC', placement: 'bottom'});
-  });
+    
+    $('#status .bar').addClass('bar-success').css('width', '100%').text("Complete!");
+    setTimeout(function() { $('#status').hide(500); } , 500);
+
+  })
+  .fail(function() { 
+    $('#status .bar').addClass('bar-danger').text("Error loading " + corpus + "!");
+    });
 
 });
 function clearRow(row) {
