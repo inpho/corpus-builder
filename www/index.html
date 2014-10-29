@@ -55,9 +55,13 @@ letter-spacing: -1px;
   }
 .propList {
   display: none;  
+  width: 45%;
+  float:left;
 }
 .error .propList {
   display: inline;
+  width: 45%;
+  float:left;
 }
 .htrcIdCol {
   width: 250px;
@@ -108,12 +112,21 @@ $.get("row.mustache.html", function(template) {
 
     for (i = 0; i < data.length; i++) {
       data[i]['htrc_props'] = []
-
       for (var prop in data[i]['htrc_md']){
         if (data[i]['htrc_md'].hasOwnProperty(prop)){
           data[i]['htrc_props'].push({
             'key' : prop,
             'value' : data[i]['htrc_md'][prop]
+           });
+        }
+      }
+
+      data[i]['citation_props'] = []
+      for (var prop in data[i]['parsed']){
+        if (data[i]['parsed'].hasOwnProperty(prop)){
+          data[i]['citation_props'].push({
+            'key' : prop,
+            'value' : data[i]['parsed'][prop]
            });
         }
       }
