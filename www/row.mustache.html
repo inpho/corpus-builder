@@ -1,13 +1,18 @@
-<tr data-htrcid="{{htrc_id}}">
+{{#confirmed}}
+<tr data-htrcid="{{htrc_id}}" class="success">
+{{/confirmed}}
+{{^confirmed}}
+<tr>
+{{/confirmed}}
   <td class="htrcIdCol">
       <div class="input-append">
-      <input type="text" class="input-medium" value="{{htrc_id}}" placeholder="HTRC ID" />
+      <input id="htrc_id" type="text" class="input-medium" value="{{htrc_id}}" placeholder="HTRC ID" />
       
       <a class="htrcLink btn" target="_blank" href="http://hdl.handle.net/2027/{{htrc_id}}"><img src="img/htrc.png" width="18" height="18" /></a>
       <a class="searchLink btn"><i class="icon-search"></i></a>
       </div>
   </td>
-  <td><p>{{original}}</p>
+  <td><p class="original">{{original}}</p>
     <dl class="propList">
     {{#htrc_props}}
       <dt>{{key}}</dt><dd>{{value}}</dd>
@@ -19,5 +24,6 @@
     {{/citation_props}}
     </dl>
   </td>
-  <td><input type="text" class="input-small" placeholder="Reading Date"></input></td>
+  <td><input id="reading_date" type="text" class="input-small" placeholder="Reading Date"></input></td>
+  <td><input id="language" type="text" class="input-small" placeholder="Language"></input></td>
 </tr>

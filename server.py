@@ -1,4 +1,5 @@
 import csv
+from datetime import datetime, timedelta
 import json
 from StringIO import StringIO
 """
@@ -8,7 +9,7 @@ from vsm.viewer.beagleviewer import BeagleViewer
 from vsm.model.ldacgsmulti import LdaCgsMulti as LCM
 from vsm.viewer.ldagibbsviewer import LDAGibbsViewer as LDAViewer
 """
-from bottle import response, route, run, static_file
+from bottle import request, response, route, run, static_file
 """
 path = '/var/inphosemantics/data/20140801/sep/vsm-data/'
 
@@ -20,6 +21,51 @@ def load_model(k):
     lda_m = LCM.load(path + 'sep-nltk-freq1-article-LDA-K%s.npz' % k)
     lda_v = LDAViewer(lda_c, lda_m)
 """
+
+def _cache_date(days=0):
+    time = datetime.now() + timedelta(days=days)
+    return time.strftime("%a, %d %b %Y %I:%M:%S GMT")
+
+@route('/write/<filename:path>', method='POST')
+def write(filename):
+    with open('www/' + filename, 'rb') as jsonfile:
+        originaldata = json.load(jsonfile)
+
+    data = [datum for datum in originaldata 
+        if datum['original'] != request.POST['original']]
+
+    with open('www/' + filename, 'wb') as jsonfile:
+        data.append(dict(request.POST.items()))
+        print data[-1]
+        data = json.dumps(data)
+        jsonfile.write(data)
+
+    return "OK"
+
+@route('/clear/<filename:path>', method='POST')
+def clear(filename):
+    with open('www/' + filename, 'rb') as jsonfile:
+        originaldata = json.load(jsonfile)
+
+    data = [datum for datum in originaldata 
+        if datum['original'] != request.POST['original']]
+
+    with open('www/' + filename, 'wb') as jsonfile:
+        data.append(dict(request.POST.items()))
+        print data[-1]
+        data = json.dumps(data)
+        jsonfile.write(data)
+
+    return "OK"
+
+@route('/<filename>.json')
+def send_static(filename):
+    response.set_header('Expires', 0)
+    response.set_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+    response.set_header('Pragma', 'no-cache')
+    response.content_type = 'application/json'
+    f = open('www/'+filename+'.json', 'rb').read()
+    return f
 
 @route('/<filename:path>')
 def send_static(filename):
