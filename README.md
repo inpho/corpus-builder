@@ -26,3 +26,9 @@ The InPhO Corpus Builder matches a plaintext bibliography to volumes in the Hath
 
 3.  Open the Corpus Builder in a browser: [http://localhost:9024/](http://localhost:9024)
 
+4.  When finished, use `extractids.py` to create a file with 1 HathiTrust ID per
+    line for use with corpus download tools.
+
+    ```
+    python extractids.py www/out.json
+    ```

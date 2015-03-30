@@ -108,3 +108,8 @@ if __name__ == '__main__':
     with open(args.output, 'wb') as output_file:
         json.dump(citations, output_file)
 
+    print "TIP: launch Corpus Builder with:"
+    print "python server.py -p 9024"
+    print "\n"
+    print "TIP: Navigate your browser to:"
+    print "http://localhost:9024/?corpus="+args.output.replace('www/','')
