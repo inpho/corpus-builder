@@ -54,7 +54,7 @@ def clear(filename):
     print len(data), len(originaldata)
 
     with open('www/' + filename, 'wb') as jsonfile:
-        request.POST['confirmed'] = False
+        request.POST['confirmed'] = True
         data.append(dict(request.POST.items()))
         print data[-1]
         data = json.dumps(data)
@@ -67,7 +67,7 @@ def send_static(filename):
     response.set_header('Expires', 0)
     response.set_header('Cache-Control', 'no-cache, no-store, must-revalidate')
     response.set_header('Pragma', 'no-cache')
-    response.content_type = 'application/json'
+    response.content_type = 'application/json; charset=UTF-8'
     f = open('www/'+filename+'.json', 'rb').read()
     return f
 

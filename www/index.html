@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
 <title>InPhO Corpus Builder</title>
 <script src="lib/jquery-1.11.0.min.js"></script>
 <!--<script src="lib/jquery.superdom.min.js"></script>-->
@@ -53,12 +54,13 @@ letter-spacing: -1px;
 .quant {
   font-style: bold;
   }
-.propList {
+.success .propList {
   display: none;  
   width: 45%;
   float:left;
 }
-.error .propList {
+.error .propList,
+.propList {
   display: inline;
   width: 45%;
   float:left;
@@ -82,7 +84,7 @@ letter-spacing: -1px;
   </div>
   </div>
   
-  <div class="non-null" id="status" style="width:100%">
+  <div class="non-null" id="status" style="width:940px; position:fixed; margin-bottom: -20px; bottom: 0px; z-index: 10000">
     <div class="progress loading progress-striped active">
       <div class="bar" style="width:33%">Loading template...</div>
     </div>
@@ -95,7 +97,7 @@ letter-spacing: -1px;
       <tbody>
       </tbody>
     </table>
-    <button class="btn btn-primary" onClick="gatherVolumes()">Select Volumes</button>
+    <!--<button class="btn btn-primary" onClick="gatherVolumes()">Select Volumes</button>-->
   </div>
   </div>
 </div>
@@ -113,6 +115,18 @@ function gatherVolumes() {
     });
   console.log(volumes);
   return volumes;
+}
+
+function redrawBar() {
+    var total = $('tr').length;
+    var missing = $('.error').length;
+    var confirmed = $('.success').length;
+    $('#stats').children().remove()
+    $('#stats').append('<li>'+total+' records</li>');
+    $('#stats').append('<li>'+missing+' missing</li>');
+    $('#stats').append('<li>'+confirmed+' confirmed</li>');
+    $('#status .bar-danger').css("width", ((missing / total) * 100).toString() + "%").text(missing.toString());
+    $('#status .bar-success').css("width", ((confirmed / total) * 100).toString() + "%").text(confirmed.toString());
 }
 
 $.get("row.mustache.html", function(template) {
@@ -146,31 +160,41 @@ $.get("row.mustache.html", function(template) {
       $('tbody').append(html);
     }
 
-    $('#corpus tr').click(function() {
+    $('#corpus tr button.confirm').click(function() {
+      var p = $($(this).parents("tr"));
+      console.log(p);
       console.log("CLICK");
+      console.log($('#htrc_id', p).val());
       // toggle order: null, error, success
-      if ($(this).hasClass('success')) {
-        // switch to null
-        $(this).removeClass('success');
-      } else if ($(this).hasClass('error')) {
-        // switch to success
-        $(this).removeClass('error');
-        $(this).addClass('success');
-        $(this).attr('data-htrcid', $('#htrc_id', this).val());
-        submitRow(this);
-      } else {
+      if(p.hasClass('success') || !($('#htrc_id', p).val())) {
+        console.log("error");
         // switch to error
-        $(this).addClass('error');
-        $(this).attr('data-htrcid', '');
-        clearRow(this);
+        p.removeClass('success');
+        p.addClass('error');
+        p.attr('data-htrcid', '');
+        clearRow(p);
+      } else if (p.hasClass('error') || $('#htrc_id', p).val()) {
+        console.log("Success");
+        // switch to success
+        p.removeClass('error');
+        p.addClass('success');
+        p.attr('data-htrcid', $('#htrc_id', p).val());
+        submitRow(p);
+      } else {
+        console.log("huh");
+      
       }
     });
 
     $('.htrcLink').tooltip({text: 'View  Volume at HTRC', placement: 'bottom'});
-    
+    $('#status .progress').removeClass('loading progress-striped active');
     $('#status .bar').addClass('bar-success').css('width', '100%').text("Complete!");
-    setTimeout(function() { $('#status').hide(500); } , 500);
-
+    setTimeout(function() { 
+      $('#status .bar').remove(); 
+      $('#status .progress').append('<div class="bar bar-success"></div>');
+      $('#status .progress').append('<div class="bar bar-danger"></div>');
+      redrawBar();
+    } , 500);
   })
   .fail(function() { 
     $('#status .bar').addClass('bar-danger').text("Error loading " + corpus + "!");
@@ -179,8 +203,9 @@ $.get("row.mustache.html", function(template) {
 });
 function clearRow(row) {
   var row = $(row);
-  var data = {'original' : $('.original', row).text(), 'confirmed' : false};
+  var data = {'original' : $('.original', row).text(), 'confirmed' : true};
   $.post('/clear/' + corpus, data, function(data) { console.log(data) }, 'json');
+  redrawBar();
 }
 
 function submitRow(row) {
@@ -191,6 +216,7 @@ function submitRow(row) {
     'language' : $('#language', row).val()};
   console.log(data);
   $.post('/write/' + corpus, data,  function(data) { console.log(data) }, 'json');
+  redrawBar();
 }
 
 </script>

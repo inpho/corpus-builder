@@ -1,15 +1,29 @@
 {{#confirmed}}
+{{#htrc_id}}
 <tr data-htrcid="{{htrc_id}}" class="success">
+  <td>
+    <button class="confirm btn"><i class="icon-share-alt"></i></button>
+  </td>
+{{/htrc_id}}
+{{^htrc_id}}
+<tr class="error">
+  <td>
+    <button class="confirm btn"><i class="icon-share-alt"></i></button>
+  </td>
+{{/htrc_id}}
 {{/confirmed}}
 {{^confirmed}}
-<tr {{^htrc_id}}class="error"{{/htrc_id}}>
+<tr>
+  <td>
+    <button class="confirm btn"><i class="icon-share-alt"></i></button>
+  </td>
 {{/confirmed}}
   <td class="htrcIdCol">
       <div class="input-append">
       <input id="htrc_id" type="text" class="input-medium" value="{{htrc_id}}" placeholder="HTRC ID" />
       
-      <a class="htrcLink btn" target="_blank" href="http://hdl.handle.net/2027/{{htrc_id}}"><img src="img/htrc.png" width="18" height="18" /></a>
-      <a class="searchLink btn"><i class="icon-search"></i></a>
+      <!--<a class="htrcLink btn" target="_blank" href="http://hdl.handle.net/2027/{{htrc_id}}"><img src="img/htrc.png" width="18" height="18" /></a>-->
+      <a class="searchLink btn" target="_blank" href="http://babel.hathitrust.org/cgi/ls?field1=ocr;q1={{parsed.title}};a=srchls;lmt=ft"><i class="icon-search"></i></a>
       </div>
   </td>
   <td><p class="original">{{original}}</p>
@@ -24,6 +38,8 @@
     {{/citation_props}}
     </dl>
   </td>
+  <!--
   <td><input id="reading_date" type="text" class="input-small" placeholder="Reading Date" value="{{reading_date}}"></input></td>
   <td><input id="language" type="text" class="input-small" placeholder="Language" value="{{language}}"></input></td>
+  -->
 </tr>

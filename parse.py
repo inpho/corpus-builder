@@ -1,22 +1,28 @@
+from codecs import open
 import json
+import rython
+import xmlrpclib
 
-new_data = []
-count  = 0
-with open('www/readings.json') as inputfile:
-    data = json.load(inputfile)
-    for datum in data:
-        year = 0
+ctx = rython.RubyContext(requires=["rubygems", "anystyle/parser"])
+ctx("Encoding.default_internal = 'UTF-8'")
+ctx("Encoding.default_external = 'UTF-8'")
+
+anystyle = ctx("Anystyle.parser")
+
+def parse_citations_from_file(readings_file):
+    return_list = []
+    with open(readings_file, 'r') as readfile:
+        data = json.load(readfile)
+
+    for d in data:
+        d['original'] = d['original'].encode('utf-8')
         try:
-            year = int(datum['htrc_md']['publishDateRange'][0])
-        except:
-            pass
+            parsed = anystyle.parse(d['original'])[0]
+            d['parsed'] = parsed
+        except xmlrpclib.Fault:
+            d['parsed'] = None
+            print "could not parse", d['original']
+    with open(readings_file, 'w') as outfile:
+        json.dump(data, outfile)
 
-        if year > 1862:
-            datum['confirmed'] = False
-            print datum['htrc_id']
-            count += 1
-        
-        new_data.append(datum)
-print count
-with open('www/readings2.json', 'wb') as outputfile:
-    json.dump(new_data, outputfile)
+parse_citations_from_file('tom.json')
