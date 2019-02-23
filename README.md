@@ -6,17 +6,11 @@ The InPhO Corpus Builder matches a plaintext bibliography to volumes in the Hath
 1.  Install [anystyle.io](http://anystyle.io) and Ruby dependencies by following the directions:
     
     ```
-    sudo apt-get install ruby-dev
-    gem install --user-install anystyle
+    sudo apt-get install ruby
+    gem install --user-install anystyle-cli
     ```
     
     Note: you might need to add the `~/.gem/ruby/2.3.0/bin` dir to your `PATH`. The `gem install` will tell you.
-    
-2.  Install `rython` using distribute:
-
-    ```
-    pip install rython
-    ```
 
 ## Usage
 
