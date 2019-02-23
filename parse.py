@@ -8,34 +8,33 @@ http://github.com/inpho/corpus-builder
 Run with 'python darparse.py -h' to see a list of command arguments.
 '''
 import json
+import os.path
+import subprocess
+import tempfile
 from time import sleep
 from urllib.request import urlopen
 from urllib.parse import quote_plus
-import os.path
-import xmlrpc.client
 
-import rython
+def parse(ref):
+    with tempfile.NamedTemporaryFile() as tmp:
+        tmp.write(bytes(ref, 'utf8'))
+        tmp.flush()
 
-from codecs import open
+        data = subprocess.check_output(f'anystyle -f json --stdout parse {tmp.name}', shell=True)
+    try:
+        return json.loads(data)[0]
+    except IndexError:
+        return None
 
-ctx = rython.RubyContext(requires=["rubygems", "anystyle/parser"])
-ctx("Encoding.default_internal = 'UTF-8'")
-ctx("Encoding.default_external = 'UTF-8'")
-
-anystyle = ctx("Anystyle.parser")
 
 def parse_citations_from_file(citation_file):
     return_list = []
-    with open(citation_file, 'r') as readfile:
+    with open(citation_file) as readfile:
         for i, line in enumerate(readfile):
-            line = line.decode('latin-1').encode("utf-8").strip()
+            line = line.strip()
             if line:
-                try:
-                    parsed = anystyle.parse(line)[0]
-                    return_list.append({'original' : line, 'parsed' : parsed})
-                except xmlrpc.client.Fault:
-                    return_list.append({'original' : line, 'parsed' : None})
-                    print(f"error on line {i}: {line}")
+                parsed =  parse(line)
+                return_list.append({'original' : line, 'parsed' : parsed})
 
     return return_list
          
@@ -66,7 +65,7 @@ def populate_htrc(citations):
         if citation['parsed']:
             title = citation['parsed'].get('title')
             if title:
-                title = title.replace("/", "")
+                title = title[0].replace("/", "")
                 title = title.replace(":", "")
                 title = title.replace("[", "")
                 title = title.replace("]", "")
@@ -90,7 +89,7 @@ if __name__ == '__main__':
     from argparse import ArgumentParser
     parser = ArgumentParser()
     parser.add_argument('-o', dest='output', help="output file", default=None)
-    parser.add_argument('citation_file', help="citation file", 
+    parser.add_argument('--citation_file', help="citation file", default="1860-1871-tofind.txt",
         type=extant_file)
     args = parser.parse_args()
 
