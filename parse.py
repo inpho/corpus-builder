@@ -9,10 +9,10 @@ Run with 'python darparse.py -h' to see a list of command arguments.
 '''
 import json
 from time import sleep
-from urllib2 import urlopen
-from urllib import quote_plus
+from urllib.request import urlopen
+from urllib.parse import quote_plus
 import os.path
-import xmlrpclib
+import xmlrpc.client
 
 import rython
 
@@ -33,9 +33,9 @@ def parse_citations_from_file(citation_file):
                 try:
                     parsed = anystyle.parse(line)[0]
                     return_list.append({'original' : line, 'parsed' : parsed})
-                except xmlrpclib.Fault:
+                except xmlrpc.client.Fault:
                     return_list.append({'original' : line, 'parsed' : None})
-                    print "error on line %d: %s" % (i, line)
+                    print(f"error on line {i}: {line}")
 
     return return_list
          
@@ -50,7 +50,7 @@ def search(title, sleep_time=1):
     try:
         data = json.load(urlopen(solr))
     except ValueError :
-        print "No result found for " + title
+        print("No result found for " + title)
         return
     if sleep:
         sleep(sleep_time) ## JUST TO MAKE SURE WE ARE THROTTLED
@@ -94,13 +94,13 @@ if __name__ == '__main__':
         type=extant_file)
     args = parser.parse_args()
 
-    print "Parsing Citations..."
+    print("Parsing Citations...")
     citations = parse_citations_from_file(args.citation_file)
 
-    print "Retrieving HTRC IDs..."
+    print("Retrieving HTRC IDs...")
     citations = populate_htrc(citations)
 
-    print "Printing output file..."
+    print("Printing output file...")
     while not args.output:
         args.output = raw_input("Output filename: www/").strip()
     if not args.output.startswith('www/'):
@@ -108,8 +108,8 @@ if __name__ == '__main__':
     with open(args.output, 'wb') as output_file:
         json.dump(citations, output_file)
 
-    print "TIP: launch Corpus Builder with:"
-    print "python server.py -p 9024"
-    print "\n"
-    print "TIP: Navigate your browser to:"
-    print "http://localhost:9024/?corpus="+args.output.replace('www/','')
+    print("TIP: launch Corpus Builder with:")
+    print("python server.py -p 9024")
+    print("\n")
+    print("TIP: Navigate your browser to:")
+    print("http://localhost:9024/?corpus="+args.output.replace('www/',''))
