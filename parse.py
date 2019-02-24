@@ -15,6 +15,8 @@ from time import sleep
 from urllib.request import urlopen
 from urllib.parse import quote_plus
 
+from pymongo import MongoClient
+
 def parse(ref):
     with tempfile.NamedTemporaryFile() as tmp:
         tmp.write(bytes(ref, 'utf8'))
@@ -35,6 +37,8 @@ def parse_citations_from_file(citation_file):
             if line:
                 parsed =  parse(line)
                 return_list.append({'original' : line, 'parsed' : parsed})
+            if i > 10:
+                break
 
     return return_list
          
@@ -42,21 +46,14 @@ def search(title, sleep_time=1):
     """ Queries the HTRC Solr index with a title and returns the resulting metadata.
     Documentation: http://www.hathitrust.org/htrc/solr-api
     """
-    # TODO: Parameterize hostname	
-    solr ="http://chinkapin.pti.indiana.edu:9994/solr/meta/select/?q=title:%s" % quote_plus(title)
-    solr += "&wt=json" ## retrieve JSON results
-    # TODO: exception handling
-    try:
-        data = json.load(urlopen(solr))
-    except ValueError :
-        print("No result found for " + title)
-        return
-    if sleep:
-        sleep(sleep_time) ## JUST TO MAKE SURE WE ARE THROTTLED
-    try:
-        return data['response']['docs'][0]
-    except IndexError:
-        return None
+    # TODO: Parameterize hostname
+    client = MongoClient('192.168.1.168', 27017)
+    db = client.htrc
+    collection = db.metadata
+
+    document = collection.find_one({'$text': {'$search' : str(title)} })
+
+    return document
 
 def populate_htrc(citations):
     for citation in citations:
@@ -69,11 +66,10 @@ def populate_htrc(citations):
                 title = title.replace(":", "")
                 title = title.replace("[", "")
                 title = title.replace("]", "")
-                htrc_md = search(title.encode('utf-8'))
-            
-                if htrc_md:
-                    citation['htrc_md'] = htrc_md
-                    citation['htrc_id'] = htrc_md.get('id')
+                citation['htrc_md'] = search(title.encode('utf-8'))
+                citation['htrc_id'] = citation['htrc_md']['volumeId']
+                del citation['htrc_md']['_id']
+
 
     return citations
 
@@ -101,10 +97,10 @@ if __name__ == '__main__':
 
     print("Printing output file...")
     while not args.output:
-        args.output = raw_input("Output filename: www/").strip()
+        args.output = input("Output filename: www/").strip()
     if not args.output.startswith('www/'):
         args.output = 'www/' + args.output
-    with open(args.output, 'wb') as output_file:
+    with open(args.output, 'w') as output_file:
         json.dump(citations, output_file)
 
     print("TIP: launch Corpus Builder with:")
