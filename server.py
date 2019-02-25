@@ -1,7 +1,7 @@
 import csv
 from datetime import datetime, timedelta
 import json
-from StringIO import StringIO
+from io import StringIO
 """
 from vsm.corpus import Corpus
 from vsm.model.beaglecomposite import BeagleComposite
@@ -37,7 +37,7 @@ def write(filename):
     with open('www/' + filename, 'wb') as jsonfile:
         request.POST['confirmed'] = True
         data.append(dict(request.POST.items()))
-        print data[-1]
+        print(data[-1])
         data = json.dumps(data)
         jsonfile.write(data)
 
@@ -51,12 +51,12 @@ def clear(filename):
     data = [datum for datum in originaldata 
         if datum['original'] != 
             request.POST['original'].decode('utf-8')]
-    print len(data), len(originaldata)
+    print(len(data), len(originaldata))
 
     with open('www/' + filename, 'wb') as jsonfile:
         request.POST['confirmed'] = True
         data.append(dict(request.POST.items()))
-        print data[-1]
+        print(data[-1])
         data = json.dumps(data)
         jsonfile.write(data)
 
