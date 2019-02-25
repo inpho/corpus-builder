@@ -14,6 +14,7 @@ import tempfile
 from time import sleep
 from urllib.request import urlopen
 from urllib.parse import quote_plus
+from unidecode import unidecode
 
 from pymongo import MongoClient
 
@@ -37,7 +38,7 @@ def parse_citations_from_file(citation_file):
             if line:
                 parsed =  parse(line)
                 return_list.append({'original' : line, 'parsed' : parsed})
-            if i > 10:
+            if i > 20:
                 break
 
     return return_list
@@ -51,9 +52,13 @@ def search(title, sleep_time=1):
     db = client.htrc
     collection = db.metadata
 
-    document = collection.find_one({'$text': {'$search' : str(title)} })
+    title = unidecode(title)
+    cursor = collection.find({'$text': {'$search' : title}},
+                             {'score': {'$meta' : 'textScore'}})
+    print(f"searching for '{title}'")
+    cursor.sort([('score', {'$meta' : 'textScore'})])
 
-    return document
+    return cursor[0]
 
 def populate_htrc(citations):
     for citation in citations:
@@ -66,10 +71,9 @@ def populate_htrc(citations):
                 title = title.replace(":", "")
                 title = title.replace("[", "")
                 title = title.replace("]", "")
-                citation['htrc_md'] = search(title.encode('utf-8'))
+                citation['htrc_md'] = search(title)
                 citation['htrc_id'] = citation['htrc_md']['volumeId']
                 del citation['htrc_md']['_id']
-
 
     return citations
 
