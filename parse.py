@@ -38,8 +38,6 @@ def parse_citations_from_file(citation_file):
             if line:
                 parsed =  parse(line)
                 return_list.append({'original' : line, 'parsed' : parsed})
-            if i > 20:
-                break
 
     return return_list
          
@@ -53,7 +51,7 @@ def search(title, sleep_time=1):
     collection = db.metadata
 
     title = unidecode(title)
-    cursor = collection.find({'$text': {'$search' : title}},
+    cursor = collection.find({'$text': {'$search' : title }},
                              {'score': {'$meta' : 'textScore'}})
     print(f"searching for '{title}'")
     cursor.sort([('score', {'$meta' : 'textScore'})])
@@ -66,11 +64,17 @@ def populate_htrc(citations):
         citation['htrc_md'] = None
         if citation['parsed']:
             title = citation['parsed'].get('title')
+            authors = citation['parsed'].get('author')
+            author = None
+            if authors:
+                author = ' '.join(authors[0].values())
             if title:
                 title = title[0].replace("/", "")
                 title = title.replace(":", "")
                 title = title.replace("[", "")
                 title = title.replace("]", "")
+                if author:
+                    title += ' ' + author
                 citation['htrc_md'] = search(title)
                 citation['htrc_id'] = citation['htrc_md']['volumeId']
                 del citation['htrc_md']['_id']
