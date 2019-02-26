@@ -28,15 +28,17 @@ def _cache_date(days=0):
 
 @route('/write/<filename:path>', method='POST')
 def write(filename):
-    with open('www/' + filename, 'rb') as jsonfile:
+    with open('www/' + filename) as jsonfile:
         originaldata = json.load(jsonfile)
 
     data = [datum for datum in originaldata 
-        if datum['original'] != request.POST['original'].decode('utf8')]
+        if datum['original'] != request.forms.decode('utf-8').original]
 
-    with open('www/' + filename, 'wb') as jsonfile:
+    with open('www/' + filename, 'w') as jsonfile:
         request.POST['confirmed'] = True
-        data.append(dict(request.POST.items()))
+        data.append(dict(request.forms.decode('utf-8').items()))
+        for key, val in request.forms.decode('utf-8').items():
+            print(type(key), key, type(val), val)
         print(data[-1])
         data = json.dumps(data)
         jsonfile.write(data)
@@ -45,17 +47,17 @@ def write(filename):
 
 @route('/clear/<filename:path>', method='POST')
 def clear(filename):
-    with open('www/' + filename, 'rb') as jsonfile:
+    with open('www/' + filename) as jsonfile:
         originaldata = json.load(jsonfile)
 
     data = [datum for datum in originaldata 
         if datum['original'] != 
-            request.POST['original'].decode('utf-8')]
+            request.forms.decode('utf-8').original]
     print(len(data), len(originaldata))
 
-    with open('www/' + filename, 'wb') as jsonfile:
+    with open('www/' + filename, 'w') as jsonfile:
         request.POST['confirmed'] = True
-        data.append(dict(request.POST.items()))
+        data.append(dict(request.forms.decode('utf-8').items()))
         print(data[-1])
         data = json.dumps(data)
         jsonfile.write(data)
