@@ -18,6 +18,36 @@ from unidecode import unidecode
 
 from pymongo import MongoClient
 
+HTRC_MD_FIELDS_TO_REMOVE = [
+    'issuance',
+    'subjectOccupation',
+    'genre',
+    'governmentDocument',
+    'schemaVersion',
+    'dateCreated',
+    'classification',
+    'subjectGeographic',
+    'sourceInstitution',
+    'subjectCartographics',
+    'lccn',
+    'rightsAttributes',
+    'lastUpdateDate',
+    'typeOfResource',
+    'subjecttitleInfo',
+    'subjectName',
+    'accessProfile',
+    'sourceInstitutionRecordNumber',
+    'htBibUrl',
+    'subjectTopic',
+    'subjectTemporal',
+    'pubPlace',
+    'bibliographicFormat',
+    'enumerationChronology',
+    'subjectGenre',
+    'pubDateSource',
+    '_id'
+]
+
 def parse(ref):
     with tempfile.NamedTemporaryFile() as tmp:
         tmp.write(bytes(ref, 'utf8'))
@@ -77,7 +107,8 @@ def populate_htrc(citations):
                     title += ' ' + author
                 citation['htrc_md'] = search(title)
                 citation['htrc_id'] = citation['htrc_md']['volumeId']
-                del citation['htrc_md']['_id']
+                for field in HTRC_MD_FIELDS_TO_REMOVE:
+                    del citation['htrc_md'][field]
 
     return citations
 
