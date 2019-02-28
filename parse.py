@@ -7,6 +7,8 @@ http://github.com/inpho/corpus-builder
 
 Run with 'python darparse.py -h' to see a list of command arguments.
 '''
+import asyncio
+import concurrent.futures
 import json
 import os.path
 import subprocess
@@ -17,6 +19,7 @@ from urllib.parse import quote_plus
 from unidecode import unidecode
 
 from pymongo import MongoClient
+from motor.motor_asyncio import AsyncIOMotorClient
 
 HTRC_MD_FIELDS_TO_REMOVE = [
     'issuance',
@@ -70,25 +73,32 @@ def parse_citations_from_file(citation_file):
                 return_list.append({'original' : line, 'parsed' : parsed})
 
     return return_list
-         
-def search(title, sleep_time=1):
+
+client = AsyncIOMotorClient('192.168.1.168', 27017)
+async def search(title, sleep_time=1, client=None):
     """ Queries the HTRC Solr index with a title and returns the resulting metadata.
     Documentation: http://www.hathitrust.org/htrc/solr-api
     """
-    # TODO: Parameterize hostname
-    client = MongoClient('192.168.1.168', 27017)
+
     db = client.htrc
     collection = db.metadata
 
     title = unidecode(title)
-    cursor = collection.find({'$text': {'$search' : title }},
-                             {'score': {'$meta' : 'textScore'}})
     print(f"searching for '{title}'")
-    cursor.sort([('score', {'$meta' : 'textScore'})])
+    document = await collection.find_one({'$text': {'$search' : title }},
+                             {'score': {'$meta' : 'textScore'}},
+                             sort=[('score', {'$meta' : 'textScore'})])
 
-    return cursor[0]
+    for field in HTRC_MD_FIELDS_TO_REMOVE:
+        try:
+            del document[field]
+        except KeyError:
+            pass
 
-def populate_htrc(citations):
+    return document
+
+async def populate_htrc(citations):
+    futures = []
     for citation in citations:
         citation['htrc_id'] = None
         citation['htrc_md'] = None
@@ -105,10 +115,13 @@ def populate_htrc(citations):
                 title = title.replace("]", "")
                 if author:
                     title += ' ' + author
-                citation['htrc_md'] = search(title)
-                citation['htrc_id'] = citation['htrc_md']['volumeId']
-                for field in HTRC_MD_FIELDS_TO_REMOVE:
-                    del citation['htrc_md'][field]
+                futures.append(search(title, client=client))
+                
+
+    for f in futures:
+        data = await f
+        citation['htrc_md'] = data
+        citation['htrc_id'] = citation['htrc_md']['volumeId']
 
     return citations
 
@@ -124,7 +137,7 @@ if __name__ == '__main__':
     from argparse import ArgumentParser
     parser = ArgumentParser()
     parser.add_argument('-o', dest='output', help="output file", default=None)
-    parser.add_argument('--citation_file', help="citation file", default="1860-1871-tofind.txt",
+    parser.add_argument('--citation_file', help="citation file", default="1860-part2.txt",
         type=extant_file)
     args = parser.parse_args()
 
@@ -132,7 +145,8 @@ if __name__ == '__main__':
     citations = parse_citations_from_file(args.citation_file)
 
     print("Retrieving HTRC IDs...")
-    citations = populate_htrc(citations)
+    loop = asyncio.get_event_loop()
+    citations = loop.run_until_complete(populate_htrc(citations))
 
     print("Printing output file...")
     while not args.output:
