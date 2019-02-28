@@ -7,7 +7,6 @@ http://github.com/inpho/corpus-builder
 
 Run with 'python darparse.py -h' to see a list of command arguments.
 '''
-import asyncio
 import concurrent.futures
 import json
 import os.path
@@ -19,7 +18,6 @@ from urllib.parse import quote_plus
 from unidecode import unidecode
 
 from pymongo import MongoClient
-from motor.motor_asyncio import AsyncIOMotorClient
 
 HTRC_MD_FIELDS_TO_REMOVE = [
     'issuance',
@@ -74,18 +72,20 @@ def parse_citations_from_file(citation_file):
 
     return return_list
 
-client = AsyncIOMotorClient('192.168.1.168', 27017)
-async def search(title, sleep_time=1, client=None):
+
+def search(i, title, sleep_time=1, client=None):
     """ Queries the HTRC Solr index with a title and returns the resulting metadata.
     Documentation: http://www.hathitrust.org/htrc/solr-api
     """
 
+    if client is None:
+        client = MongoClient('192.168.1.168', 27017)
     db = client.htrc
     collection = db.metadata
 
     title = unidecode(title)
     print(f"searching for '{title}'")
-    document = await collection.find_one({'$text': {'$search' : title }},
+    document = collection.find_one({'$text': {'$search' : title }},
                              {'score': {'$meta' : 'textScore'}},
                              sort=[('score', {'$meta' : 'textScore'})])
 
@@ -95,33 +95,35 @@ async def search(title, sleep_time=1, client=None):
         except KeyError:
             pass
 
-    return document
+    return i, document
 
-async def populate_htrc(citations):
-    futures = []
-    for citation in citations:
-        citation['htrc_id'] = None
-        citation['htrc_md'] = None
-        if citation['parsed']:
-            title = citation['parsed'].get('title')
-            authors = citation['parsed'].get('author')
-            author = None
-            if authors:
-                author = ' '.join(authors[0].values())
-            if title:
-                title = title[0].replace("/", "")
-                title = title.replace(":", "")
-                title = title.replace("[", "")
-                title = title.replace("]", "")
-                if author:
-                    title += ' ' + author
-                futures.append(search(title, client=client))
-                
+def populate_htrc(citations):
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+        futures = []
+        for i, citation in enumerate(citations):
+            citation['htrc_id'] = None
+            citation['htrc_md'] = None
+            if citation['parsed']:
+                title = citation['parsed'].get('title')
+                authors = citation['parsed'].get('author')
+                author = None
+                if authors:
+                    author = ' '.join(authors[0].values())
+                if title:
+                    title = title[0].replace("/", "")
+                    title = title.replace(":", "")
+                    title = title.replace("[", "")
+                    title = title.replace("]", "")
+                    if author:
+                        title += ' ' + author
+                    f = executor.submit(search, i, title)
+                    futures.append(f)
+                    
 
-    for f in futures:
-        data = await f
-        citation['htrc_md'] = data
-        citation['htrc_id'] = citation['htrc_md']['volumeId']
+        for f in concurrent.futures.as_completed(futures):
+            i, data = f.result()
+            citations[i]['htrc_md'] = data
+            citations[i]['htrc_id'] = citations[i]['htrc_md']['volumeId']
 
     return citations
 
@@ -145,8 +147,7 @@ if __name__ == '__main__':
     citations = parse_citations_from_file(args.citation_file)
 
     print("Retrieving HTRC IDs...")
-    loop = asyncio.get_event_loop()
-    citations = loop.run_until_complete(populate_htrc(citations))
+    citations = populate_htrc(citations)
 
     print("Printing output file...")
     while not args.output:
